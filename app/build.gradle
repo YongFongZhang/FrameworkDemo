@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "23.0.0 rc3"
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         applicationId "cn.yunquan.frameworkdemo"
@@ -10,22 +10,26 @@ android {
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
+
+        buildConfigField "String", "API_ENDPOINT", "\"http://mercury.5laipa.com:8000\""
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
-            buildConfigField "String", "API_ENDPOINT", "\"http://mercury.5laipa.com:8000/api/\""
         }
 
         debug {
             minifyEnabled false
             debuggable true
 
-            buildConfigField "String", "API_ENDPOINT", "\"http://mercury.5laipa.com:8000/api/\""
+            buildConfigField "String", "API_ENDPOINT", "\"http://mercury.5laipa.com:8000\""
         }
     }
+}
+
+repositories {
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 }
 
 dependencies {
@@ -34,4 +38,7 @@ dependencies {
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.squareup.okhttp:okhttp:2.4.0'
     compile 'com.path:android-priority-jobqueue:1.1.2'
+    compile 'de.greenrobot:eventbus:3.0.0-beta1'
+    compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
+    compile 'com.jakewharton:butterknife:7.0.1'
 }

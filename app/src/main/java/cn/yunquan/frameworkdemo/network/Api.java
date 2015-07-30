@@ -9,6 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 import cn.yunquan.frameworkdemo.BuildConfig;
 import cn.yunquan.frameworkdemo.YQApplication;
+import cn.yunquan.frameworkdemo.services.CircleService;
+import cn.yunquan.frameworkdemo.services.LoginService;
+import cn.yunquan.frameworkdemo.services.OauthService;
+import cn.yunquan.frameworkdemo.services.PostService;
 import retrofit.ErrorHandler;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
@@ -20,27 +24,26 @@ import retrofit.converter.GsonConverter;
 public class Api {
     private static final long DISK_CACHE_SIZE = 2 * 1024 * 1024; // 2M
     private static final long SESSION_TIME_OUT_SECONDS = 8 ; // 请求超时8s
-    private static RestAdapter restAdapter;
+    private static RestAdapter.Builder restAdapterBuilder;
 
     /**
-     * 获取Rest代理
+     * 获取Rest代理Builder
      * @return
      */
-    private static RestAdapter getRestAdapter(){
-        if (restAdapter != null){
-            return restAdapter;
+    private static RestAdapter.Builder getRestAdapterBuilder(){
+        if (restAdapterBuilder != null){
+            return restAdapterBuilder;
         } else {
-            restAdapter = new RestAdapter.Builder()
+            restAdapterBuilder = new RestAdapter.Builder()
                     .setEndpoint(BuildConfig.API_ENDPOINT)  // api终端
-                    .setConverter(new GsonConverter(new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create())) // 数据转换
+                    .setConverter(new GsonConverter(new GsonBuilder().create())) // 数据转换
                     .setClient(new OkClient(getOkHttpClient())) // 网络连接客户端
                     .setErrorHandler(ErrorHandler.DEFAULT) // 错误处理
-                    .setLogLevel(BuildConfig.DEBUG ? RestAdapter.LogLevel.FULL : RestAdapter.LogLevel.NONE) // 日志级别
-                    .setErrorHandler(ErrorHandler.DEFAULT)
-                    .build();
-            return restAdapter;
+                    .setLogLevel(BuildConfig.DEBUG ? RestAdapter.LogLevel.FULL : RestAdapter.LogLevel.NONE);// 日志级别
+            return restAdapterBuilder;
         }
     }
+
 
     /**
      * 生成OkHttp网络客户端
@@ -66,18 +69,45 @@ public class Api {
 
 
     /**
-     * 圈子Api服务
+     * 圈子相关Api服务
      * @return
      */
     public static CircleService getCircleService(){
-        return getRestAdapter().create(CircleService.class);
+        RestAdapter adapter = getRestAdapterBuilder()
+                .setRequestInterceptor(new YQRequestInterceptor())  // request篡改器
+                .build();
+        return adapter.create(CircleService.class);
     }
+
+    /**
+     * 帖子相关Api服务
+     * @return
+     */
+    public static PostService getPostService(){
+        RestAdapter adapter = getRestAdapterBuilder()
+                .setClient(new OkClient(getOkHttpClient()))
+                .setRequestInterceptor(new YQRequestInterceptor())  // request篡改器
+                .build();
+        return adapter.create(PostService.class);
+    }
+
 
     /**
      * Oauth认证Api服务
      * @return
      */
     public static OauthService getOauthService(){
-        return getRestAdapter().create(OauthService.class);
+        return getRestAdapterBuilder().setClient(new OauthServiceClient()).build().create(OauthService.class);
+    }
+
+    /**
+     * 登录相关Api服务
+     * @return
+     */
+    public static LoginService getLoginService(){
+        return getRestAdapterBuilder()
+            .setClient(new OkClient(getOkHttpClient()))
+            .setRequestInterceptor(new YQOauthRequestInterceptor())  // request篡改器
+            .build().create(LoginService.class);
     }
 }
